@@ -6,7 +6,7 @@ app.use(cors())
 app.get('/', (req, res) => {
     const myData = require('./data.json')
     const resData = new MyData(myData)
-    res.json(resData)
+    res.json()
 })
 
 app.get('/favorite', (req, res) => {
