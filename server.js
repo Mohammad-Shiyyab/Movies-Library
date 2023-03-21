@@ -1,4 +1,4 @@
-const express = require('express')
+const express = require ('express')
 const cors = require('cors')
 const app = express()
 app.use(cors())
@@ -11,6 +11,23 @@ app.get('/', (req, res) => {
 
 app.get('/favorite', (req, res) => {
     res.send('Welcome to Favorite Page')
+})
+
+app.get('/trending ',(req, res, next) => {
+    const key = process.env.API_KEY
+    const url = `https://api.themoviedb.org/3/trending/all/week?api_key=${key}&language=en-US`
+    const params = {
+        page: req.query.page
+    }
+})
+
+app.get('/search' ,(req, res, next) =>{
+    const key = process.env.API_KEY
+    const url = `https://api.themoviedb.org/3/search/movie?api_key=${key}&language=en-US`
+    const params = {
+        query: req.query.query,
+        page: req.query.page
+    }
 })
 
 app.use((req, res, next) => {
@@ -30,11 +47,14 @@ app.use((err, req, res, next) => {
     })
 })
 
-function MyData({ title, poster_path, overview }) {
+function MyData({id,title,release_date, poster_path, overview }) {
+    this.id=id;
+    this.release_date=release-date;
     this.title = title;
     this.poster_path = poster_path;
     this.overview = overview;
 }
-const port = 5000
-app.listen(port, () => console.log('listining in port: ' + port))
 
+
+const port = 3000
+app.listen(port, () => console.log(' Server start , listining in port: ' + port))
