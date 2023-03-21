@@ -6,7 +6,7 @@ app.use(cors())
 app.get('/', (req, res) => {
     const myData = require('./data.json')
     const resData = new MyData(myData)
-    res.json()
+    res.json(resData)
 })
 
 app.get('/favorite', (req, res) => {
@@ -32,8 +32,8 @@ app.use((err, req, res, next) => {
 
 function MyData({ title, poster_path, overview }) {
     this.title = title;
-    this.overview = overview;
     this.poster_path = poster_path;
+    this.overview = overview;
 }
 const port = 5000
 app.listen(port, () => console.log('listining in port: ' + port))
