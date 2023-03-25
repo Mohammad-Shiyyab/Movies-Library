@@ -1,6 +1,7 @@
 const express = require ('express')
 const cors = require('cors')
 const axios = require('axios')
+const dbClient = new pg.Client(process.env.DB_URL)
 const app = express()
 app.use(cors())
 require('dotenv').config()
