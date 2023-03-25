@@ -11,6 +11,8 @@ app.get('/trending', getTrending)
 app.get('/search', searchHandler)
 app.get('/movie', movieHandler)
 app.get('/rate', rateHandler)
+app.get('/getMovies', get_movie)
+app.post('/addMovie',addMovieHandler)
 
 
 app.get('/', (req, res) => {                    
@@ -21,6 +23,9 @@ app.get('/', (req, res) => {
 
 function getFavorite (req, res)  {
     res.send('Welcome to Favorite Page')
+}
+function addMovieHandler(req, res){
+
 }
 
 function getTrending(req, res, next)  {
@@ -69,6 +74,51 @@ function rateHandler(req,res,){
         res.json(resp.data)
     })
 }
+
+
+
+async function get_movie(req, res) {
+    try {
+        const movies = await getMovies()
+        res.json(movies)
+    } catch (error) {
+        next(error)
+    }
+}
+
+async function addMovieHandler(req, res) {
+    const body = req.body;
+    try {
+        const movie = new Movie(body)
+        const resp = await addMovie(movie, body.comment)
+        res.json(resp)
+    } catch (error) {
+        next(error)
+    }
+}
+
+
+
+
+
+
+async function getMovies() {
+    const sql = `SELECT * FROM movies`
+    const resp = await dbClient.query(sql)
+    return resp.rows
+}
+
+async function addMovie(movie, comment) {
+    const sql = `INSERT INTO movies (title, release_date, poster_path, overview, comment)
+            VALUES ($1, $2, $3, $4, $5) RETURNING *;`
+    const resp = await dbClient.query(sql, [movie.title, movie.release_date, movie.poster_path, movie.overview, comment])
+    return resp.rows
+
+
+}
+
+
+
 app.use((req, res, next) => {
     res.status(404)
     res.json({
