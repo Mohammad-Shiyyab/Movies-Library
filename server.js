@@ -14,6 +14,9 @@ app.get('/movie', movieHandler)
 app.get('/rate', rateHandler)
 app.get('/getMovies', get_movie)
 app.post('/addMovie',addMovieHandler)
+app.get('/movies/:id',getMovieHandler )
+app.put('/movies/:id',updateMovieHandler)
+app.delete('/movies/:id',deleteMovieHandler)
 
 
 app.get('/', (req, res) => {                    
@@ -101,6 +104,45 @@ async function addMovieHandler(req, res) {
 
 
 
+ async function getMovieHandler(req,res){
+
+    
+        const sql = `SELECT * FROM movies WHERE id=${id}`
+        const resp = await dbClient.query(sql)
+        return resp.rows
+    }
+
+
+
+ function updateMovieHandler(req,res){
+    let recipeid=req.params.id;
+    let body=req.body;
+    let sql=`UPDATE movies SET title, release_date, poster_path, overview, comment
+    WHERE id=${id} 
+    RETURNING *`
+
+    let values=[title, release_date, poster_path, overview, comment]
+    client.query(sql,values).then(result =>{
+        console.log(result)
+        res.send("update")
+    }).catch()
+
+}
+
+
+function deleteMovieHandler(req,res){
+    let recipeid=req.params.id;
+    let body=req.body;
+    let sql=`DELETE FROM movies WHERE id=${id}`
+    let value =[id]
+    clinet.query(sql.value).then(result =>{
+        res.status(204).send("delete")
+    }).catch()
+
+
+
+
+}
 
 
 async function getMovies() {
@@ -137,6 +179,8 @@ app.use((err, req, res, next) => {
     })
 })
 
+
+
 function MyData({ title, poster_path, overview }) {
     this.title = title;
     this.poster_path = poster_path;
@@ -149,6 +193,7 @@ function Movie({ id, title, release_date, poster_path, overview }) {
     this.release_date = release_date;
     this.poster_path = poster_path;
     this.overview = overview;
+    this.comment=comment
 }
 
 
