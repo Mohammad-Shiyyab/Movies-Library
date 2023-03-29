@@ -1,6 +1,7 @@
 const express = require ('express')
 const cors = require('cors')
 const axios = require('axios')
+const pg = require('pg')
 const dbClient = new pg.Client(process.env.DB_URL)
 const app = express()
 app.use(cors())
@@ -10,7 +11,7 @@ require('dotenv').config()
 app.get('/favorite', getFavorite)
 app.get('/trending', getTrending)
 app.get('/search', searchHandler)
-app.get('/movie', movieHandler)
+app.get('/movies', movieHandler)
 app.get('/rate', rateHandler)
 app.get('/getMovies', get_movie)
 app.post('/addMovie',addMovieHandler)
@@ -30,6 +31,22 @@ function getFavorite (req, res)  {
 }
 function addMovieHandler(req, res){
 
+}
+
+async function deleteMovieHandler(req, res, next) {
+    const id = req.params.id
+    try {
+        await deleteMovie(id)
+        res.status(204).json({})
+    } catch (error) {
+        next(error)
+    }
+}
+
+async function deleteMovie(id) {
+    const sql = `DELETE FROM movies WHERE id = ${id}`
+    const resp = await dbClient.query(sql)
+    return resp.rows
 }
 
 function getTrending(req, res, next)  {
@@ -104,32 +121,45 @@ async function addMovieHandler(req, res) {
 
 
 
- async function getMovieHandler(req,res){
-
-    
-        const sql = `SELECT * FROM movies WHERE id=${id}`
-        const resp = await dbClient.query(sql)
-        return resp.rows
+ 
+async function getMovieHandler(req, res, next) {
+    const id = req.params.id
+    try {
+        const movies = await getMovies(id)
+        if(movies.length === 0 ) return res.status(204).send();
+        res.json(movies)
+    } catch (error) {
+        next(error)
     }
-
-
-
- function updateMovieHandler(req,res){
-    let recipeid=req.params.id;
-    let body=req.body;
-    let sql=`UPDATE movies SET title, release_date, poster_path, overview, comment
-    WHERE id=${id} 
-    RETURNING *`
-
-    let values=[title, release_date, poster_path, overview, comment]
-    client.query(sql,values).then(result =>{
-        console.log(result)
-        res.send("update")
-    }).catch()
-
 }
 
 
+ 
+async function updateMovieHandler(req, res, next) {
+    const id = req.params.id
+    const body = req.body;
+    const updatedMovie = new Movie(body)
+    try {
+        const resp = await updateMovie(id, updatedMovie)
+        res.json(resp)
+    } catch (error) {
+        next(error)
+    }
+}
+
+async function updateMovie(id, updatedMovie) {
+    const setValues = []
+    const movie = await getMovie(id)
+    const newMovie ={...movie,...updatedMovie} 
+
+    const sql = `UPDATE movies 
+                SET title = $1, release_date = $2 , poster_path = $3 , overview = $4 ,comment = $5
+                WHERE id=${id}
+                RETURNING *`
+    
+    const resp = await dbClient.query(sql,[newMovie.title,newMovie.release_date,newMovie.poster_path,newMovie.overview,newMovie.comment])
+    return resp.rows
+}
 function deleteMovieHandler(req,res){
     let recipeid=req.params.id;
     let body=req.body;
@@ -139,10 +169,8 @@ function deleteMovieHandler(req,res){
         res.status(204).send("delete")
     }).catch()
 
-
-
-
 }
+
 
 
 async function getMovies() {
@@ -197,5 +225,9 @@ function Movie({ id, title, release_date, poster_path, overview }) {
 }
 
 
-const port = 3000
-app.listen(port, () => console.log(' Server start , listining in port: ' + port))
+app.listen(5000, 'localhost', function(err) {
+    if (err) return console.log(err);
+    else{
+     dbClient.connect()
+    console.log("Listening at http://localhost:%s", 5000);}
+});
