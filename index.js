@@ -1,52 +1,50 @@
+'use strict'
 const express = require ('express')
+const bodyParser=require('body-parser')
+const recipeData = require('./movie Data/data.json')
 const cors = require('cors')
 const axios = require('axios')
-const pg = require('pg')
-const dbClient = new pg.Client(process.env.DB_URL)
-const app = express()
-app.use(cors())
 require('dotenv').config()
+const app = express()
+app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.json());
+app.use(cors())
+const {Client}=require('pg')
+let url=`postgres://mohammad:0000@localhost:5432/movies`
+// const client = new Client(url)
+// const dbClient = new pg.Client(process.env.DB_URL)
 
 
+
+// app.get('/', (req, res) => {                    
+   
+app.get('/', getHome)
 app.get('/favorite', getFavorite)
 app.get('/trending', getTrending)
 app.get('/search', searchHandler)
-app.get('/movies', movieHandler)
+app.get('/movie', movieHandler)
 app.get('/rate', rateHandler)
 app.get('/getMovies', get_movie)
 app.post('/addMovie',addMovieHandler)
-app.get('/movies/:id',getMovieHandler )
-app.put('/movies/:id',updateMovieHandler)
-app.delete('/movies/:id',deleteMovieHandler)
 
 
-app.get('/', (req, res) => {                    
-    const myData = require('./data.json')
-    const resData = new MyData(myData)
-    res.json(resData)
-})
+// app.get('/', (req, res) => {                    
+//     const myData = require('./data.json')
+//     const resData = new MyData(myData)
+//     res.json(resData)
+// })
+
+function getHome(req, res) {
+
+    let newdata = new Train(recipeData.title, recipeData.poster_path, recipeData.overview)
+    res.send(newdata)
+}
 
 function getFavorite (req, res)  {
     res.send('Welcome to Favorite Page')
 }
 function addMovieHandler(req, res){
 
-}
-
-async function deleteMovieHandler(req, res, next) {
-    const id = req.params.id
-    try {
-        await deleteMovie(id)
-        res.status(204).json({})
-    } catch (error) {
-        next(error)
-    }
-}
-
-async function deleteMovie(id) {
-    const sql = `DELETE FROM movies WHERE id = ${id}`
-    const resp = await dbClient.query(sql)
-    return resp.rows
 }
 
 function getTrending(req, res, next)  {
@@ -61,6 +59,18 @@ function getTrending(req, res, next)  {
         next(err)
     })
 }
+
+// let id,name,comment=req.body;  //destructuring
+// //client.query(sql,value)
+// let sql =`INSERT INTO movies (id,name,comment)
+// VALUES($1,$2,$3);`
+// let values=[id,name,comment]
+// client.query(sql,values).then(
+//     res.status(201).send("data successhully saved in db to server"
+//     ).catch()
+
+// )
+
 
 
 function searchHandler(req,res){
@@ -98,20 +108,20 @@ function rateHandler(req,res,){
 
 
 
-async function get_movie(req, res) {
+function get_movie(req, res) {
     try {
-        const movies = await getMovies()
+        const movies =  getMovies()
         res.json(movies)
     } catch (error) {
         next(error)
     }
 }
 
-async function addMovieHandler(req, res) {
+function addMovieHandler(req, res) {
     const body = req.body;
     try {
         const movie = new Movie(body)
-        const resp = await addMovie(movie, body.comment)
+        const resp = addMovie(movie, body.comment)
         res.json(resp)
     } catch (error) {
         next(error)
@@ -121,68 +131,18 @@ async function addMovieHandler(req, res) {
 
 
 
- 
-async function getMovieHandler(req, res, next) {
-    const id = req.params.id
-    try {
-        const movies = await getMovies(id)
-        if(movies.length === 0 ) return res.status(204).send();
-        res.json(movies)
-    } catch (error) {
-        next(error)
-    }
-}
 
 
- 
-async function updateMovieHandler(req, res, next) {
-    const id = req.params.id
-    const body = req.body;
-    const updatedMovie = new Movie(body)
-    try {
-        const resp = await updateMovie(id, updatedMovie)
-        res.json(resp)
-    } catch (error) {
-        next(error)
-    }
-}
-
-async function updateMovie(id, updatedMovie) {
-    const setValues = []
-    const movie = await getMovie(id)
-    const newMovie ={...movie,...updatedMovie} 
-
-    const sql = `UPDATE movies 
-                SET title = $1, release_date = $2 , poster_path = $3 , overview = $4 ,comment = $5
-                WHERE id=${id}
-                RETURNING *`
-    
-    const resp = await dbClient.query(sql,[newMovie.title,newMovie.release_date,newMovie.poster_path,newMovie.overview,newMovie.comment])
-    return resp.rows
-}
-function deleteMovieHandler(req,res){
-    let recipeid=req.params.id;
-    let body=req.body;
-    let sql=`DELETE FROM movies WHERE id=${id}`
-    let value =[id]
-    clinet.query(sql.value).then(result =>{
-        res.status(204).send("delete")
-    }).catch()
-
-}
-
-
-
-async function getMovies() {
+ function getMovies() {
     const sql = `SELECT * FROM movies`
-    const resp = await dbClient.query(sql)
+    const resp =  dbClient.query(sql)
     return resp.rows
 }
 
-async function addMovie(movie, comment) {
+ function addMovie(movie, comment) {
     const sql = `INSERT INTO movies (title, release_date, poster_path, overview, comment)
             VALUES ($1, $2, $3, $4, $5) RETURNING *;`
-    const resp = await dbClient.query(sql, [movie.title, movie.release_date, movie.poster_path, movie.overview, comment])
+    const resp =  dbClient.query(sql, [movie.title, movie.release_date, movie.poster_path, movie.overview, comment])
     return resp.rows
 
 
@@ -207,8 +167,6 @@ app.use((err, req, res, next) => {
     })
 })
 
-
-
 function MyData({ title, poster_path, overview }) {
     this.title = title;
     this.poster_path = poster_path;
@@ -221,13 +179,19 @@ function Movie({ id, title, release_date, poster_path, overview }) {
     this.release_date = release_date;
     this.poster_path = poster_path;
     this.overview = overview;
-    this.comment=comment
 }
 
 
-app.listen(5000, 'localhost', function(err) {
-    if (err) return console.log(err);
-    else{
-     dbClient.connect()
-    console.log("Listening at http://localhost:%s", 5000);}
-});
+// client.connect().then(()=>{
+//     app.listen(port, () => console.log(' Server start , listining in port: ' + port))
+// }).catch()
+
+function Train(title, poster_path, overview) {
+    this.title = title;
+    this.poster_path = poster_path;
+    this.overview = overview;
+}
+
+const port = 3050
+app.listen(port, () => console.log(' Server start , listining in port: ' + port))
+
