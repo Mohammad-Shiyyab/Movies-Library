@@ -13,12 +13,7 @@ app.use(cors())
 const port = process.env.PORT ;
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json());
-let apiKey=process.env.API_KEY;
-
-
-
-
-                  
+let apiKey=process.env.API_KEY;                
    
 app.get('/', getHome)
 app.get('/favorite', getFavorite)
@@ -28,7 +23,9 @@ app.get('/movie', movieHandler)
 app.get('/rate', rateHandler)
 app.get('/getMovies', getMoviesHandler)
 app.post('/addMovie',addMovieHandler)
-
+app.get('/movies/:id',getMovieHandler )
+app.put('/movies/:id',updateMovieHandler)
+app.delete('/movies/:id',deleteMovieHandler)
 
 
 
@@ -116,6 +113,43 @@ function addMovieHandler(req,res){
 }
 
 
+
+
+function updateMovieHandler(req,res){
+    // console.log(11111111,req.params);
+    let movieID = req.params.id // params
+    let {title,comment,id} = req.body;
+    let sql=`UPDATE movies SET title = $1, comment = $2, id=$3 
+    WHERE id = $4 RETURNING *`;
+    let values = [title,comment,id,movieID];
+    client.query(sql,values).then(result=>{
+        console.log(result.rows);
+        res.send(result.rows)
+    }).catch()
+
+}
+function deleteMovieHandler(req,res){
+    let movieID = req.params.id; 
+    let sql=`DELETE FROM movies WHERE id = $1`; 
+    let value = [movieID];
+    client.query(sql,value).then(result=>{
+        res.status(204).send("deleted");
+    }).catch()
+
+
+}
+function  getMovieHandler (req,res){
+    let movieID = req.params.id 
+    let sql=`SELECT *
+    FROM movies
+    WHERE id = $1`;
+    let values = [movieID];
+    client.query(sql,values).then((result)=>{
+        res.json(result.rows)
+    }
+
+    ).catch()
+}
 
 
 
