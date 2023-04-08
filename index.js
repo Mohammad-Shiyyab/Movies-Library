@@ -11,6 +11,7 @@ app.use(bodyParser.json());
 app.use(cors())
 const {Client}=require('pg')
 let url=`postgres://mohammad:0000@localhost:5432/movies`
+let apiKey=process.env.API_KEY;
 // const client = new Client(url)
 // const dbClient = new pg.Client(process.env.DB_URL)
 
@@ -40,6 +41,8 @@ function getHome(req, res) {
     res.send(newdata)
 }
 
+
+
 function getFavorite (req, res)  {
     res.send('Welcome to Favorite Page')
 }
@@ -60,31 +63,54 @@ function getTrending(req, res, next)  {
     })
 }
 
-// let id,name,comment=req.body;  //destructuring
-// //client.query(sql,value)
-// let sql =`INSERT INTO movies (id,name,comment)
-// VALUES($1,$2,$3);`
-// let values=[id,name,comment]
-// client.query(sql,values).then(
-//     res.status(201).send("data successhully saved in db to server"
-//     ).catch()
 
-// )
+// function searchHandler(req,res){
+//     const url = `https://api.themoviedb.org/3/search/movie?api_key=bb696566aeb1c17e12b8f63e878cbfbf&language=en-US&query=The&page=2`
+//     const params = {
+//         page: req.query.page
+//     }
+//     axios.get(url, { params }).then(mohammad => {
+//         mohammad.data.results = mohammad.data.results.map(asa => new Movie(asa))
+//         res.json(mohammad.data)
+//     }).catch(err => {
+//         next(err)
+//     })
+// }
 
+function searchHandler (req,res){
+    let movieName = req.query.name;
+    let url = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&language=en-US&query=${movieName}&The&page=2`;
 
+    //https://api.spoonacular.com/recipes/random?apiKey=$%7Bapikey%7D 
+    axios.get(url)
+    .then((result)=>{
 
-function searchHandler(req,res){
-    const url = `https://api.themoviedb.org/3/search/movie?api_key=bb696566aeb1c17e12b8f63e878cbfbf&language=en-US&query=The&page=2`
-    const params = {
-        page: req.query.page
-    }
-    axios.get(url, { params }).then(mohammad => {
-        mohammad.data.results = mohammad.data.results.map(asa => new Movie(asa))
-        res.json(mohammad.data)
-    }).catch(err => {
-        next(err)
+        let dataSearch = result.data.results.map((search)=>{
+            return new Requets(search.id, search.title,search.release_date,search.poster_path,search.overview)
+        })
+        console.log(result.data.results.data)
+        res.json(dataSearch);
     })
+    .catch((err)=>{
+        console.log(err);
+    })
+
 }
+
+function Requets(id,title,release_date,poster_path,overview){
+    this.id=id;
+    this.title=title;
+    this.release_date=release_date;
+    this.poster_path=poster_path;
+    this.overview=overview;
+}
+
+
+
+
+
+
+
 
 function movieHandler(req,res,){
     const url=`https://api.themoviedb.org/3/movie/popular?api_key=bb696566aeb1c17e12b8f63e878cbfbf&language=en-US&page=1`
@@ -182,9 +208,7 @@ function Movie({ id, title, release_date, poster_path, overview }) {
 }
 
 
-// client.connect().then(()=>{
-//     app.listen(port, () => console.log(' Server start , listining in port: ' + port))
-// }).catch()
+
 
 function Train(title, poster_path, overview) {
     this.title = title;
@@ -192,6 +216,8 @@ function Train(title, poster_path, overview) {
     this.overview = overview;
 }
 
-const port = 3050
-app.listen(port, () => console.log(' Server start , listining in port: ' + port))
-
+app.listen(3080, 'localhost', function(err) {
+    if (err) return console.log(err);
+    else{
+    console.log("Listening at http://localhost:%s", 3080);}
+});
