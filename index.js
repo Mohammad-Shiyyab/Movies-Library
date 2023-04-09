@@ -118,10 +118,10 @@ function addMovieHandler(req,res){
 function updateMovieHandler(req,res){
     // console.log(11111111,req.params);
     let movieID = req.params.id // params
-    let {title,comment,id} = req.body;
-    let sql=`UPDATE movies SET title = $1, comment = $2, id=$3 
-    WHERE id = $4 RETURNING *`;
-    let values = [title,comment,id,movieID];
+    let {comment} = req.body;
+    let sql=`UPDATE movies SET  comment = $1
+    WHERE id = $2 RETURNING *`;
+    let values = [comment,movieID]; 
     client.query(sql,values).then(result=>{
         console.log(result.rows);
         res.send(result.rows)
