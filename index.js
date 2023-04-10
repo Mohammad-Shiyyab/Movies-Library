@@ -40,18 +40,40 @@ function getFavorite (req, res)  {
     res.send('Welcome to Favorite Page')
 }
 
-function getTrending(req, res, next)  {
+// function getTrending(req, res, next)  {
+//     const url = `https://api.themoviedb.org/3/trending/all/week?api_key=bb696566aeb1c17e12b8f63e878cbfbf&language=en-US`
+//     const params = {
+//         page: req.query.page
+//     }
+//     axios.get(url, { params }).then(mohammad => {
+//         mohammad.data.results = mohammad.data.results.map(asa => new Movie(asa))
+//         res.json(mohammad.data)
+//     }).catch(err => {
+//         // next(err)
+//     })
+// }
+
+function getTrending(req, res)  {
     const url = `https://api.themoviedb.org/3/trending/all/week?api_key=bb696566aeb1c17e12b8f63e878cbfbf&language=en-US`
-    const params = {
-        page: req.query.page
-    }
-    axios.get(url, { params }).then(mohammad => {
-        mohammad.data.results = mohammad.data.results.map(asa => new Movie(asa))
-        res.json(mohammad.data)
+    
+    axios.get(url).then(mohammad  => {
+        //console.log(mohammad.data.results)
+        let rtending = mohammad.data.results.map(mohammad =>{
+            console.log(mohammad)
+        return new Movienow(mohammad.id, mohammad.title, mohammad.release_date,
+             mohammad.poster_path, mohammad.overview)
+            })
+        res.json(rtending)
     }).catch(err => {
         // next(err)
+        handleSeror(err, req, res)
     })
 }
+
+
+
+
+
 
 function searchHandler (req,res){
     let movieName = req.query.title;
@@ -172,22 +194,25 @@ app.use((req, res, next) => {
     })
 })
 
-app.use((err, req, res, next) => {
+app.use(handleSeror)
+function handleSeror (err, req, res, next)  {
     console.error(err)
     res.status(500)
     res.json({
         "status": 500,
         "responseText": "Sorry, internal server error"
     })
-})
+}
 
-function MyData({ title, poster_path, overview }) {
+
+
+function MyData(title, poster_path, overview) {
     this.title = title;
     this.poster_path = poster_path;
     this.overview = overview;
 }
 
-function Movie({ id, title, release_date, poster_path, overview }) {
+function Movienow( id, title, release_date, poster_path, overview ) {
     this.id = id
     this.title = title;
     this.release_date = release_date;
@@ -212,3 +237,13 @@ app.listen(3080, 'localhost', function(err) {
 });
 }).catch()
 
+
+
+// (err, req, res, next) => {
+//     console.error(err)
+//     res.status(500)
+//     res.json({
+//         "status": 500,
+//         "responseText": "Sorry, internal server error"
+//     })
+// }
