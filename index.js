@@ -49,7 +49,7 @@ function getTrending(req, res, next)  {
         mohammad.data.results = mohammad.data.results.map(asa => new Movie(asa))
         res.json(mohammad.data)
     }).catch(err => {
-        next(err)
+        // next(err)
     })
 }
 
