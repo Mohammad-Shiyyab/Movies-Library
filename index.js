@@ -6,11 +6,11 @@ require('dotenv').config()
 const bodyParser=require('body-parser')
 const recipeData = require('./movie Data/data.json')
 const  {Client}  = require('pg')
-let url=`postgres://mohammad:0000@localhost:5432/movies`
+let url=process.env.DB_URL
 const client = new Client(url)
 const app = express()
 app.use(cors())
-const port = process.env.PORT ;
+const PORT = process.env.PORT ;
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json());
 let apiKey=process.env.API_KEY;                
@@ -65,7 +65,7 @@ function getTrending(req, res)  {
             })
         res.json(rtending)
     }).catch(err => {
-        // next(err)
+        // (err)
         handleSeror(err, req, res)
     })
 }
@@ -230,10 +230,10 @@ function Train(title, poster_path, overview) {
 }
 
 client.connect().then(()=>{
-app.listen(3080, 'localhost', function(err) {
+app.listen(PORT, 'localhost', function(err) {
     if (err) return console.log(err);
     else{
-    console.log("Listening at http://localhost:%s", 3080);}
+    console.log("Listening at http://localhost:%s", PORT);}
 });
 }).catch()
 
